@@ -1,0 +1,94 @@
+import streamlit as st
+from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_core.messages import HumanMessage, AIMessage
+import os
+
+# Set up the page configuration
+st.set_page_config(
+    page_title="Gemini Chatbot",
+    page_icon="💬",
+    layout="wide"
+)
+
+# Initialize session state for API key and messages
+if "api_key" not in st.session_state:
+    st.session_state.api_key = ""
+
+if "messages" not in st.session_state:
+    st.session_state.messages = []
+
+# Sidebar for API key input
+with st.sidebar:
+    st.title("Configuration")
+    api_key_input = st.text_input("Enter your Gemini API Key:", value=st.session_state.api_key, type="password")
+    if api_key_input:
+        st.session_state.api_key = api_key_input
+    
+    # Button to clear chat history
+    if st.button("Clear Chat"):
+        st.session_state.messages = []
+    
+    st.divider()
+    st.markdown("### About")
+    st.markdown("This is a chatbot powered by Google's Gemini LLM using LangChain and Streamlit.")
+    st.markdown("Enter your API key to start chatting!")
+
+# Main title
+st.title("🤖 Gemini Chatbot")
+st.caption("Powered by Google's Gemini via LangChain")
+
+# Display chat messages
+for message in st.session_state.messages:
+    with st.chat_message(message.type):
+        st.write(message.content)
+
+# Function to get response from Gemini
+def get_gemini_response(user_input):
+    if not st.session_state.api_key:
+        st.error("Please enter your Gemini API key in the sidebar!")
+        return None
+
+    try:
+        # Initialize the model with the API key
+        llm = ChatGoogleGenerativeAI(
+            model="gemini-2.5-flash",
+            google_api_key=st.session_state.api_key,
+            temperature=0.7
+        )
+        
+        # Prepare the messages for the model
+        messages = []
+        for msg in st.session_state.messages:
+            if isinstance(msg, HumanMessage):
+                messages.append(HumanMessage(content=msg.content))
+            elif isinstance(msg, AIMessage):
+                messages.append(AIMessage(content=msg.content))
+        
+        # Add the current user input
+        messages.append(HumanMessage(content=user_input))
+        
+        # Get the response from the model
+        response = llm.invoke(messages)
+        return response.content
+        
+    except Exception as e:
+        st.error(f"Error: {str(e)}")
+        return None
+
+# Chat input
+if user_input := st.chat_input("Type your message here..."):
+    # Add user message to session state
+    st.session_state.messages.append(HumanMessage(content=user_input))
+    
+    # Display user message in chat
+    with st.chat_message("human"):
+        st.write(user_input)
+    
+    # Get and display AI response
+    with st.chat_message("ai"):
+        with st.spinner("Thinking..."):
+            response = get_gemini_response(user_input)
+            if response:
+                st.write(response)
+                # Add AI message to session state
+                st.session_state.messages.append(AIMessage(content=response))
