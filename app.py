@@ -10,12 +10,15 @@ st.set_page_config(
     layout="wide"
 )
 
-# Initialize session state for API key and messages
+# Initialize session state for API key, messages, and model
 if "api_key" not in st.session_state:
     st.session_state.api_key = ""
 
 if "messages" not in st.session_state:
     st.session_state.messages = []
+
+if "model" not in st.session_state:
+    st.session_state.model = "gemini-2.5-flash"  # default model
 
 # Sidebar for API key input
 with st.sidebar:
@@ -23,6 +26,22 @@ with st.sidebar:
     api_key_input = st.text_input("Enter your Gemini API Key:", value=st.session_state.api_key, type="password")
     if api_key_input:
         st.session_state.api_key = api_key_input
+    
+    # Model selection dropdown
+    model_options = [
+        "gemini-2.5-flash",
+        "gemini-2.5-pro",
+        "gemini-2.0-flash",
+        "gemini-1.5-pro",
+        "gemini-1.5-flash",
+        "gemini-1.0-pro"
+    ]
+    selected_model = st.selectbox(
+        "Select Gemini Model:",
+        options=model_options,
+        index=model_options.index(st.session_state.model) if st.session_state.model in model_options else 0
+    )
+    st.session_state.model = selected_model
     
     # Button to clear chat history
     if st.button("Clear Chat"):
@@ -49,9 +68,9 @@ def get_gemini_response(user_input):
         return None
 
     try:
-        # Initialize the model with the API key
+        # Initialize the model with the API key and selected model
         llm = ChatGoogleGenerativeAI(
-            model="gemini-2.5-flash",
+            model=st.session_state.model,
             google_api_key=st.session_state.api_key,
             temperature=0.7
         )
