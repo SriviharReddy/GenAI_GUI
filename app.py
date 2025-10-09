@@ -63,7 +63,9 @@ with st.sidebar:
     st.divider()
     st.markdown("### About")
     st.markdown("This is a chatbot powered by Google's Gemini LLM using LangChain and Streamlit.")
-    st.markdown("Enter your API key to start chatting!")
+    st.markdown("- Enter your API key to get started")
+    st.markdown("- Select from various Gemini models using the dropdown")
+    st.markdown("- Customize AI behavior with the system prompt")
 
 # Main title
 st.title("🤖 Gemini Chatbot")
