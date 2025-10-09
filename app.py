@@ -10,7 +10,7 @@ st.set_page_config(
     layout="wide"
 )
 
-# Initialize session state for API key, messages, and model
+# Initialize session state for API key, messages, model, and system prompt
 if "api_key" not in st.session_state:
     st.session_state.api_key = ""
 
@@ -19,6 +19,9 @@ if "messages" not in st.session_state:
 
 if "model" not in st.session_state:
     st.session_state.model = "gemini-2.5-flash"  # default model
+
+if "system_prompt" not in st.session_state:
+    st.session_state.system_prompt = "You are a helpful and friendly AI assistant."
 
 # Sidebar for API key input
 with st.sidebar:
@@ -42,6 +45,16 @@ with st.sidebar:
         index=model_options.index(st.session_state.model) if st.session_state.model in model_options else 0
     )
     st.session_state.model = selected_model
+    
+    # System prompt input
+    system_prompt_input = st.text_area(
+        "System Prompt:",
+        value=st.session_state.system_prompt,
+        height=150,
+        help="Set the behavior and context for the AI assistant"
+    )
+    if system_prompt_input:
+        st.session_state.system_prompt = system_prompt_input
     
     # Button to clear chat history
     if st.button("Clear Chat"):
@@ -77,6 +90,13 @@ def get_gemini_response(user_input):
         
         # Prepare the messages for the model
         messages = []
+        
+        # Add system prompt as the first message if it exists and this is the first interaction
+        if st.session_state.system_prompt and not st.session_state.messages:
+            messages.append(HumanMessage(content=st.session_state.system_prompt))
+            messages.append(AIMessage(content="I understand. I'll follow the instructions in your system prompt. How can I assist you today?"))
+        
+        # Add the existing conversation history
         for msg in st.session_state.messages:
             if isinstance(msg, HumanMessage):
                 messages.append(HumanMessage(content=msg.content))
