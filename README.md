@@ -23,11 +23,12 @@ This is a simple web interface for interacting with Google's Gemini 2.5 Flash mo
 
 1. Clone this repository
 2. Install the required packages: `pip install -r requirements.txt`
-3. Run the application: `streamlit run app.py`
-4. Enter your Google Gemini API key in the sidebar
-5. Select your preferred Gemini model from the dropdown
-6. Optionally customize the AI behavior with the system prompt
-7. Start chatting with the bot!
+3. Create a `.env` file in the root directory and add your API key: `GEMINI_API_KEY=your_actual_api_key_here`
+4. Run the application: `streamlit run app.py`
+5. Your API key will be loaded from the .env file, or you can enter it in the sidebar as an alternative
+6. Select your preferred Gemini model from the dropdown
+7. Optionally customize the AI behavior with the system prompt
+8. Start chatting with the bot!
 
 ## Notes
 

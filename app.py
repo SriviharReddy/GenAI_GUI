@@ -2,6 +2,10 @@ import streamlit as st
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.messages import HumanMessage, AIMessage
 import os
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 # Set up the page configuration
 st.set_page_config(
@@ -12,7 +16,7 @@ st.set_page_config(
 
 # Initialize session state for API key, messages, model, and system prompt
 if "api_key" not in st.session_state:
-    st.session_state.api_key = ""
+    st.session_state.api_key = os.getenv("GEMINI_API_KEY", "")
 
 if "messages" not in st.session_state:
     st.session_state.messages = []
@@ -26,7 +30,12 @@ if "system_prompt" not in st.session_state:
 # Sidebar for API key input
 with st.sidebar:
     st.title("Configuration")
-    api_key_input = st.text_input("Enter your Gemini API Key:", value=st.session_state.api_key, type="password")
+    api_key_input = st.text_input(
+        "Enter your Gemini API Key:", 
+        value=st.session_state.api_key, 
+        type="password",
+        help="API key will be loaded from .env file if not entered here"
+    )
     if api_key_input:
         st.session_state.api_key = api_key_input
     
