@@ -1,6 +1,7 @@
 # Gemini Chatbot UI
 
 This is a simple web interface for interacting with Google's Gemini 2.5 Flash model using Streamlit and LangChain. This project was created as part of my learning journey to practice working with LLMs, web interfaces, and API integration.
+<img width="2559" height="1386" alt="image" src="https://github.com/user-attachments/assets/cfe40997-0672-4204-8a89-e7a99d9739b4" />
 
 ## Features
 
