@@ -2,6 +2,9 @@
 
 This is a simple web interface for interacting with multiple LLM providers (Google Gemini, OpenAI, Anthropic, Groq, and OpenRouter) using Streamlit and LangChain. The application has been refactored to follow object-oriented programming principles and a modular architecture, making it more maintainable and extensible. This project was created as part of my learning journey to practice working with LLMs, web interfaces, and API integration.
 
+<img width="2559" height="1387" alt="image" src="https://github.com/user-attachments/assets/f2b29381-7c23-45e7-9be9-8e79caf518ad" />
+
+
 ## Features
 
 - Clean, user-friendly chat interface
