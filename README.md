@@ -39,18 +39,14 @@ The application follows a modular design with separate files:
 
 1. Clone this repository
 2. Install the required packages: `pip install -r requirements.txt`
-3. Create a `.env` file in the root directory and add your API key(s):
-   - For Google: `GEMINI_API_KEY=your_actual_api_key_here`
-   - For OpenAI: `OPENAI_API_KEY=your_actual_api_key_here`
-   - For Anthropic: `ANTHROPIC_API_KEY=your_actual_api_key_here`
-   - For Groq: `GROQ_API_KEY=your_actual_api_key_here`
-   - For OpenRouter: `OPENROUTER_API_KEY=your_actual_api_key_here`
-4. Run the application: `streamlit run app.py`
-5. Select your preferred provider from the dropdown in the sidebar
-6. Enter your corresponding API key in the sidebar
-7. Select your preferred model from the dropdown
-8. Optionally customize the AI behavior with the system prompt
-9. Start chatting with the bot!
+3. Run the application: `streamlit run app.py`
+4. Select your preferred provider from the dropdown in the sidebar
+5. Enter your corresponding API key in the sidebar (the .env file will be automatically created)
+6. Select your preferred model from the dropdown
+7. Optionally customize the AI behavior with the system prompt
+8. Start chatting with the bot!
+
+Note: The application will automatically create and update a `.env` file to store your API keys. You do not need to manually create this file.
 
 ## Notes
 
