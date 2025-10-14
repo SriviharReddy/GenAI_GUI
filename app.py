@@ -46,7 +46,22 @@ class Configuration:
         with st.sidebar:
             st.title("Configuration")
             
-            # API key inputs based on selected provider (which is now available from top selection)
+            # Provider selection dropdown - now at the top of the sidebar
+            provider_options = [
+                "Google",
+                "OpenAI",
+                "Anthropic",
+                "Groq",
+                "OpenRouter"
+            ]
+            selected_provider = st.selectbox(
+                "Select Provider:",
+                options=provider_options,
+                index=provider_options.index(st.session_state.provider) if st.session_state.provider in provider_options else 0
+            )
+            st.session_state.provider = selected_provider
+            
+            # API key inputs based on selected provider
             if st.session_state.provider == "Google":
                 api_key_input = st.text_input(
                     "Enter your Gemini API Key:", 
@@ -460,27 +475,10 @@ class Application:
     
     def run(self):
         """Run the main application."""
-        # Provider selection at the very top of the page, above sidebar
-        # Provider selection dropdown at the top left of the page
-        provider_options = [
-            "Google",
-            "OpenAI", 
-            "Anthropic",
-            "Groq",
-            "OpenRouter"
-        ]
-        selected_provider = st.selectbox(
-            "Provider:",
-            options=provider_options,
-            index=provider_options.index(st.session_state.provider) if st.session_state.provider in provider_options else 0,
-            key="top_provider_select"
-        )
-        st.session_state.provider = selected_provider
-        
-        # Render the sidebar configuration
+        # Render the sidebar configuration (which now includes provider selection)
         self.config.render_sidebar()
         
-        # Main title next to the provider selector (in the main content area)
+        # Main title (now without the provider in the title since it's in the sidebar)
         st.title(f"🤖 {st.session_state.provider} Chatbot")
         st.caption(f"Powered by {st.session_state.provider} via LangChain")
         
