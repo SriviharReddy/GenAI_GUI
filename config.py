@@ -329,19 +329,3 @@ class Configuration:
             # Button to clear chat history
             if st.button("Clear Chat"):
                 st.session_state.messages = []
-            
-            st.divider()
-            st.markdown("### About")
-            st.markdown(f"Multi-Provider Chatbot powered by **{st.session_state.provider}** LLM via LangChain.")
-            st.markdown("#### Features:")
-            st.markdown("- Multiple LLM provider support (Google, OpenAI, Anthropic, Groq, OpenRouter)")
-            st.markdown("- Secure API key handling with .env file storage")
-            st.markdown("- Real-time conversation history")
-            st.markdown("- Provider-specific model selection")
-            st.markdown("- Customizable system prompts")
-            st.markdown("- Clean, responsive UI")
-            st.markdown("#### Usage Tips:")
-            st.markdown("- Choose a provider from the dropdown above")
-            st.markdown("- Enter your corresponding API key")
-            st.markdown("- Select an appropriate model for your needs")
-            st.markdown("- Clear chat history when starting a new conversation")
