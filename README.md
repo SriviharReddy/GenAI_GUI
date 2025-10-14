@@ -1,6 +1,6 @@
 # Multi-Provider Chatbot UI
 
-This is a simple web interface for interacting with multiple LLM providers (Google Gemini, OpenAI, Anthropic, Groq, and OpenRouter) using Streamlit and LangChain. The application has been refactored to follow object-oriented programming principles, making it more maintainable and extensible. This project was created as part of my learning journey to practice working with LLMs, web interfaces, and API integration.
+This is a simple web interface for interacting with multiple LLM providers (Google Gemini, OpenAI, Anthropic, Groq, and OpenRouter) using Streamlit and LangChain. The application has been refactored to follow object-oriented programming principles and a modular architecture, making it more maintainable and extensible. This project was created as part of my learning journey to practice working with LLMs, web interfaces, and API integration.
 
 ## Features
 
@@ -12,14 +12,14 @@ This is a simple web interface for interacting with multiple LLM providers (Goog
 - Provider-specific model selection
 - Customizable system prompt
 - Clear chat history functionality
-- Object-oriented architecture for better maintainability
+- Modular architecture with separate files for configuration and chatbot logic
 
 ## Architecture
 
-The application follows an object-oriented design with three main components:
-- `Application`: Manages the main Streamlit app flow and UI
-- `Configuration`: Handles API key, provider selection, model selection, and system prompt management
-- `MultiProviderChatbot`: Manages chatbot functionality and communication with multiple LLM providers
+The application follows a modular design with separate files:
+- `app.py`: Main application entry point and UI flow management
+- `config.py`: Handles provider selection, API key management, model selection, and system prompts
+- `chatbot.py`: Manages chatbot functionality and communication with multiple LLM providers
 
 ## Requirements
 
@@ -43,7 +43,7 @@ The application follows an object-oriented design with three main components:
    - For Groq: `GROQ_API_KEY=your_actual_api_key_here`
    - For OpenRouter: `OPENROUTER_API_KEY=your_actual_api_key_here`
 4. Run the application: `streamlit run app.py`
-5. Select your preferred provider from the dropdown at the top left
+5. Select your preferred provider from the dropdown in the sidebar
 6. Enter your corresponding API key in the sidebar
 7. Select your preferred model from the dropdown
 8. Optionally customize the AI behavior with the system prompt
@@ -51,4 +51,4 @@ The application follows an object-oriented design with three main components:
 
 ## Notes
 
-This is a learning project and may be updated as I continue to develop my skills in working with LLMs and building web interfaces. The OOP refactoring improves code organization, maintainability, and extensibility. Feel free to explore, modify, and use this code as a starting point for your own projects.
+This is a learning project and may be updated as I continue to develop my skills in working with LLMs and building web interfaces. The modular refactoring improves code organization, maintainability, and extensibility. Feel free to explore, modify, and use this code as a starting point for your own projects.
