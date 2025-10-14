@@ -1,16 +1,15 @@
-# Gemini Chatbot UI
+# Multi-Provider Chatbot UI
 
-This is a simple web interface for interacting with Google's Gemini models using Streamlit and LangChain. The application has been refactored to follow object-oriented programming principles, making it more maintainable and extensible. This project was created as part of my learning journey to practice working with LLMs, web interfaces, and API integration.
-
-<img width="2559" height="1386" alt="image" src="https://github.com/user-attachments/assets/cfe40997-0672-4204-8a89-e7a99d9739b4" />
+This is a simple web interface for interacting with multiple LLM providers (Google Gemini, OpenAI, Anthropic, Groq, and OpenRouter) using Streamlit and LangChain. The application has been refactored to follow object-oriented programming principles, making it more maintainable and extensible. This project was created as part of my learning journey to practice working with LLMs, web interfaces, and API integration.
 
 ## Features
 
 - Clean, user-friendly chat interface
+- Support for multiple LLM providers (Google Gemini, OpenAI, Anthropic, Groq, OpenRouter)
 - Secure API key input with automatic .env file saving
 - Conversation history
 - Real-time chat responses
-- Multiple Gemini model selection (gemini-2.5-flash, gemini-2.5-pro, gemini-1.5-pro, etc.)
+- Provider-specific model selection
 - Customizable system prompt
 - Clear chat history functionality
 - Object-oriented architecture for better maintainability
@@ -19,8 +18,8 @@ This is a simple web interface for interacting with Google's Gemini models using
 
 The application follows an object-oriented design with three main components:
 - `Application`: Manages the main Streamlit app flow and UI
-- `Configuration`: Handles API key, model selection, and system prompt management
-- `GeminiChatbot`: Manages chatbot functionality and communication with Gemini API
+- `Configuration`: Handles API key, provider selection, model selection, and system prompt management
+- `MultiProviderChatbot`: Manages chatbot functionality and communication with multiple LLM providers
 
 ## Requirements
 
@@ -28,19 +27,27 @@ The application follows an object-oriented design with three main components:
 - Streamlit
 - LangChain
 - LangChain Google GenAI
+- LangChain OpenAI
+- LangChain Anthropic
+- LangChain Groq
 - python-dotenv
-- Google Gemini API key
 
 ## Setup
 
 1. Clone this repository
 2. Install the required packages: `pip install -r requirements.txt`
-3. Create a `.env` file in the root directory and add your API key: `GEMINI_API_KEY=your_actual_api_key_here`
+3. Create a `.env` file in the root directory and add your API key(s):
+   - For Google: `GEMINI_API_KEY=your_actual_api_key_here`
+   - For OpenAI: `OPENAI_API_KEY=your_actual_api_key_here`
+   - For Anthropic: `ANTHROPIC_API_KEY=your_actual_api_key_here`
+   - For Groq: `GROQ_API_KEY=your_actual_api_key_here`
+   - For OpenRouter: `OPENROUTER_API_KEY=your_actual_api_key_here`
 4. Run the application: `streamlit run app.py`
-5. Your API key will be loaded from the .env file, or you can enter it in the sidebar as an alternative
-6. Select your preferred Gemini model from the dropdown
-7. Optionally customize the AI behavior with the system prompt
-8. Start chatting with the bot!
+5. Select your preferred provider from the dropdown at the top left
+6. Enter your corresponding API key in the sidebar
+7. Select your preferred model from the dropdown
+8. Optionally customize the AI behavior with the system prompt
+9. Start chatting with the bot!
 
 ## Notes
 
