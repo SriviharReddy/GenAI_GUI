@@ -460,32 +460,29 @@ class Application:
     
     def run(self):
         """Run the main application."""
-        # Create a top bar with provider selection
-        col1, col2 = st.columns([1, 4])
-        with col1:
-            # Provider selection dropdown at the top left
-            provider_options = [
-                "Google",
-                "OpenAI", 
-                "Anthropic",
-                "Groq",
-                "OpenRouter"
-            ]
-            selected_provider = st.selectbox(
-                "Provider:",
-                options=provider_options,
-                index=provider_options.index(st.session_state.provider) if st.session_state.provider in provider_options else 0,
-                key="top_provider_select"
-            )
-            st.session_state.provider = selected_provider
-        
-        with col2:
-            # Main title
-            st.title(f"🤖 {st.session_state.provider} Chatbot")
-            st.caption(f"Powered by {st.session_state.provider} via LangChain")
+        # Provider selection at the very top of the page, above sidebar
+        # Provider selection dropdown at the top left of the page
+        provider_options = [
+            "Google",
+            "OpenAI", 
+            "Anthropic",
+            "Groq",
+            "OpenRouter"
+        ]
+        selected_provider = st.selectbox(
+            "Provider:",
+            options=provider_options,
+            index=provider_options.index(st.session_state.provider) if st.session_state.provider in provider_options else 0,
+            key="top_provider_select"
+        )
+        st.session_state.provider = selected_provider
         
         # Render the sidebar configuration
         self.config.render_sidebar()
+        
+        # Main title next to the provider selector (in the main content area)
+        st.title(f"🤖 {st.session_state.provider} Chatbot")
+        st.caption(f"Powered by {st.session_state.provider} via LangChain")
         
         # Display chat history
         self.chatbot.display_chat_history()
