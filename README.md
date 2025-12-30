@@ -1,173 +1,90 @@
-# 🤖 GenAI GUI - Multi-Provider Chatbot
+# GenAI GUI
 
-A modern, feature-rich AI chatbot application built with **Streamlit** and **LangGraph**. Supports multiple AI providers with streaming responses and a clean, intuitive interface.
+A multi-provider AI chatbot built with Streamlit and LangGraph. Started as a learning project when I was getting into LangChain, now upgraded to use modern patterns.
 
-![Python 3.12+](https://img.shields.io/badge/python-3.12+-blue.svg)
-![LangGraph](https://img.shields.io/badge/LangGraph-0.2+-green.svg)
-![Streamlit](https://img.shields.io/badge/Streamlit-1.40+-red.svg)
+## What it does
 
-## ✨ Features
+Switch between different AI providers (Google, OpenAI, Anthropic, Groq, OpenRouter) without changing code. API keys persist to `.env` so you don't have to re-enter them. Responses stream in real-time.
 
-- **Multi-Provider Support** - Seamlessly switch between:
-  - 🟢 Google (Gemini)
-  - 🔵 OpenAI (GPT-4, GPT-3.5)
-  - 🟣 Anthropic (Claude)
-  - 🟠 Groq (LLaMA, Mixtral)
-  - 🔴 OpenRouter (access 100+ models)
+Under the hood, it uses LangGraph for conversation flow—validation, generation, and error handling are separate nodes in a state machine. This makes it easy to extend later (RAG, tools, multi-agent, etc).
 
-- **LangGraph Integration** - Modern state machine architecture for:
-  - Proper conversation flow management
-  - Validation and error handling nodes
-  - Extensible graph-based design
+## Setup
 
-- **Streaming Responses** - Real-time token-by-token output with visual feedback
+**Requirements:** Python 3.12+
 
-- **Persistent API Keys** - Keys are automatically saved to `.env` file
+```bash
+# Clone and install
+git clone https://github.com/SriviharReddy/GenAI_GUI.git
+cd GenAI_GUI
+uv sync  # or: pip install -r requirements.txt
 
-- **Customizable System Prompts** - Define AI personality and behavior
-
-- **Modern UI** - Polished interface with custom styling
-
-## 🚀 Quick Start
-
-### Prerequisites
-
-- Python 3.12+
-- [uv](https://github.com/astral-sh/uv) (recommended) or pip
-
-### Installation
-
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/yourusername/GenAI_GUI.git
-   cd GenAI_GUI
-   ```
-
-2. **Install dependencies**
-   
-   Using uv (recommended):
-   ```bash
-   uv sync
-   ```
-   
-   Using pip:
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-3. **Set up API keys** (optional)
-   
-   Create a `.env` file:
-   ```env
-   GEMINI_API_KEY=your_google_api_key
-   OPENAI_API_KEY=your_openai_api_key
-   ANTHROPIC_API_KEY=your_anthropic_api_key
-   GROQ_API_KEY=your_groq_api_key
-   OPENROUTER_API_KEY=your_openrouter_api_key
-   ```
-   
-   Or enter them directly in the sidebar—they'll be saved automatically.
-
-4. **Run the application**
-   ```bash
-   streamlit run app.py
-   ```
-   
-   Or with uv:
-   ```bash
-   uv run streamlit run app.py
-   ```
-
-## 🏗️ Architecture
-
-```
-GenAI_GUI/
-├── app.py          # Main Streamlit application
-├── chatbot.py      # ChatbotManager - UI/Graph interface
-├── config.py       # Configuration and sidebar management
-├── graph.py        # LangGraph state machine implementation
-├── pyproject.toml  # Project configuration
-└── requirements.txt
+# Run
+uv run streamlit run app.py  # or: streamlit run app.py
 ```
 
-### LangGraph Flow
+API keys can go in a `.env` file or just paste them in the sidebar—they'll save automatically.
 
-```
-┌─────────┐     ┌──────────┐     ┌──────────┐     ┌─────┐
-│  START  │ ──► │ validate │ ──► │ generate │ ──► │ END │
-└─────────┘     └──────────┘     └──────────┘     └─────┘
-                      │                              ▲
-                      │          ┌─────────┐         │
-                      └────────► │  error  │ ────────┘
-                    (on error)   └─────────┘
+```env
+GEMINI_API_KEY=...
+OPENAI_API_KEY=...
+ANTHROPIC_API_KEY=...
+GROQ_API_KEY=...
+OPENROUTER_API_KEY=...
 ```
 
-## 📝 Usage
+## Project structure
 
-1. **Select a Provider** - Choose from Google, OpenAI, Anthropic, Groq, or OpenRouter
-2. **Enter API Key** - Input your API key (auto-saved to `.env`)
-3. **Choose a Model** - Select from available models for your provider
-4. **Set System Prompt** - Customize the AI's behavior (optional)
-5. **Start Chatting!** - Type your message and press Enter
+```
+app.py          - Streamlit UI
+chatbot.py      - Bridges UI and graph
+config.py       - Provider configs, sidebar
+graph.py        - LangGraph state machine
+```
 
-### Streaming Toggle
+The graph flow is simple:
 
-Enable/disable streaming responses from the sidebar. Streaming provides real-time feedback; disable it for complete responses at once.
+```
+START → validate → generate → END
+              ↓
+            error → END
+```
 
-## 🔧 Extending the Application
+## Adding providers
 
-### Adding a New Provider
+1. Add config in `config.py`:
+```python
+PROVIDERS["NewProvider"] = ProviderConfig(
+    name="NewProvider",
+    env_key="NEW_PROVIDER_API_KEY",
+    session_key="new_provider_api_key",
+    models=["model-1", "model-2"]
+)
+```
 
-1. Add the provider configuration in `config.py`:
-   ```python
-   PROVIDERS["NewProvider"] = ProviderConfig(
-       name="NewProvider",
-       env_key="NEW_PROVIDER_API_KEY",
-       session_key="new_provider_api_key",
-       models=["model-1", "model-2"]
-   )
-   ```
+2. Add LLM init in `graph.py`:
+```python
+case "NewProvider":
+    return ChatNewProvider(model=model, api_key=api_key, ...)
+```
 
-2. Add the LLM initialization in `graph.py`:
-   ```python
-   case "NewProvider":
-       return ChatNewProvider(
-           model=model,
-           api_key=api_key,
-           temperature=0.7,
-           streaming=True
-       )
-   ```
-
-### Adding Custom Nodes to the Graph
-
-Edit `graph.py` to add new nodes:
+## Adding graph nodes
 
 ```python
-def my_custom_node(state: ChatState) -> ChatState:
-    # Your custom logic here
+def my_node(state: ChatState) -> ChatState:
+    # do something
     return state
 
-# In build_chat_graph():
-graph_builder.add_node("custom", my_custom_node)
-graph_builder.add_edge("validate", "custom")
-graph_builder.add_edge("custom", "generate")
+# in build_chat_graph():
+graph_builder.add_node("my_node", my_node)
+graph_builder.add_edge("validate", "my_node")
+graph_builder.add_edge("my_node", "generate")
 ```
 
-## 📦 Dependencies
+## Dependencies
 
-| Package | Purpose |
-|---------|---------|
-| `langchain` | Core LLM abstractions |
-| `langgraph` | Graph-based state management |
-| `langchain-*` | Provider integrations |
-| `streamlit` | Web UI framework |
-| `python-dotenv` | Environment variable management |
+- `langchain` / `langgraph` - LLM framework
+- `langchain-google-genai`, `langchain-openai`, etc. - provider integrations  
+- `streamlit` - web UI
+- `python-dotenv` - env file loading
 
-## 📄 License
-
-MIT License - feel free to use this project for learning and development!
-
----
-
-Built with ❤️ using LangGraph and Streamlit
+MIT License
