@@ -1,28 +1,29 @@
-# GenAI GUI
+# MyAPI Chat
 
-A multi-provider AI chatbot built with Streamlit and LangGraph. Started as a learning project when I was getting into LangChain, now upgraded to use modern patterns.
+Got an API key? Start chatting in seconds.
 
-## What it does
+Many AI providers offer free tiers or credits to get started:
+- **Google Gemini** — free tier with generous limits
+- **Groq** — free, incredibly fast inference
+- **OpenRouter** — free credits, access to 100+ models
+- **OpenAI** / **Anthropic** — paid, but industry standards
 
-Switch between different AI providers (Google, OpenAI, Anthropic, Groq, OpenRouter) without changing code. API keys persist to `.env` so you don't have to re-enter them. Responses stream in real-time.
+This app lets you use any of them through a single interface. Paste your key, pick a model, and go. Keys save locally so you don't re-enter them. Chat history persists across sessions.
 
-Under the hood, it uses LangGraph for conversation flow—validation, generation, and error handling are separate nodes in a state machine. This makes it easy to extend later (RAG, tools, multi-agent, etc).
+Built with LangGraph for proper conversation management—easy to extend with RAG, tools, or multi-agent flows later.
 
-## Setup
+## Quick start
 
 **Requirements:** Python 3.12+
 
 ```bash
-# Clone and install
 git clone https://github.com/SriviharReddy/GenAI_GUI.git
 cd GenAI_GUI
 uv sync  # or: pip install -r requirements.txt
-
-# Run
-uv run streamlit run app.py  # or: streamlit run app.py
+uv run streamlit run app.py
 ```
 
-API keys can go in a `.env` file or just paste them in the sidebar—they'll save automatically.
+Paste your API key in the sidebar. Or add to `.env`:
 
 ```env
 GEMINI_API_KEY=...
@@ -32,26 +33,29 @@ GROQ_API_KEY=...
 OPENROUTER_API_KEY=...
 ```
 
+## Where to get keys
+
+| Provider | Link | Notes |
+|----------|------|-------|
+| Google Gemini | [aistudio.google.com](https://aistudio.google.com/apikey) | Free tier available |
+| Groq | [console.groq.com](https://console.groq.com/keys) | Free, very fast |
+| OpenRouter | [openrouter.ai](https://openrouter.ai/keys) | Free credits, many models |
+| OpenAI | [platform.openai.com](https://platform.openai.com/api-keys) | Paid |
+| Anthropic | [console.anthropic.com](https://console.anthropic.com/) | Paid |
+
 ## Project structure
 
 ```
 app.py          - Streamlit UI
-chatbot.py      - Bridges UI and graph
+chatbot.py      - Session & message management
 config.py       - Provider configs, sidebar
 graph.py        - LangGraph state machine
+history.py      - SQLite chat persistence
 ```
 
-The graph flow is simple:
+## Extending
 
-```
-START → validate → generate → END
-              ↓
-            error → END
-```
-
-## Adding providers
-
-1. Add config in `config.py`:
+Add a new provider in `config.py`:
 ```python
 PROVIDERS["NewProvider"] = ProviderConfig(
     name="NewProvider",
@@ -61,30 +65,17 @@ PROVIDERS["NewProvider"] = ProviderConfig(
 )
 ```
 
-2. Add LLM init in `graph.py`:
+Then add the LLM init in `graph.py`:
 ```python
 case "NewProvider":
     return ChatNewProvider(model=model, api_key=api_key, ...)
 ```
 
-## Adding graph nodes
+## Tech
 
-```python
-def my_node(state: ChatState) -> ChatState:
-    # do something
-    return state
-
-# in build_chat_graph():
-graph_builder.add_node("my_node", my_node)
-graph_builder.add_edge("validate", "my_node")
-graph_builder.add_edge("my_node", "generate")
-```
-
-## Dependencies
-
-- `langchain` / `langgraph` - LLM framework
-- `langchain-google-genai`, `langchain-openai`, etc. - provider integrations  
-- `streamlit` - web UI
-- `python-dotenv` - env file loading
+- LangGraph for state management
+- Streamlit for UI  
+- SQLite for chat history persistence
+- Supports streaming responses
 
 MIT License

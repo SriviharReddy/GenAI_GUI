@@ -5,6 +5,7 @@ langchain-community>=0.3.0
 
 # LangGraph
 langgraph>=0.2.0
+langgraph-checkpoint-sqlite>=2.0.0
 
 # Provider integrations
 langchain-google-genai>=2.0.0

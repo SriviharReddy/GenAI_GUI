@@ -199,75 +199,89 @@ class Configuration:
         )
         st.session_state.model = selected_model
     
-    def render_sidebar(self) -> None:
-        """Render the complete configuration sidebar."""
+    def render_sidebar(self, chatbot) -> None:
+        """Render the sidebar with settings and chat history."""
         with st.sidebar:
-            st.title("⚙️ Configuration")
+            # Settings in collapsible expander at top
+            with st.expander("Settings", expanded=False):
+                # Provider selection
+                provider_names = list(PROVIDERS.keys())
+                current_provider_index = provider_names.index(st.session_state.provider) \
+                    if st.session_state.provider in provider_names else 0
+                
+                selected_provider = st.selectbox(
+                    "Provider",
+                    options=provider_names,
+                    index=current_provider_index,
+                )
+                st.session_state.provider = selected_provider
+                
+                provider_config = PROVIDERS[selected_provider]
+                
+                # API Key
+                self._render_api_key_input(provider_config)
+                
+                # Model Selection
+                self._render_model_selector(provider_config)
+                
+                # Streaming toggle
+                st.session_state.use_streaming = st.toggle(
+                    "Stream responses",
+                    value=st.session_state.use_streaming,
+                    help="Show tokens as they arrive"
+                )
+                
+                # System Prompt
+                system_prompt = st.text_area(
+                    "System Prompt",
+                    value=st.session_state.system_prompt,
+                    height=60,
+                    help="Define the AI's behavior"
+                )
+                if system_prompt:
+                    st.session_state.system_prompt = system_prompt
             
-            # Provider selection
-            st.subheader("Provider")
-            provider_names = list(PROVIDERS.keys())
-            current_provider_index = provider_names.index(st.session_state.provider) \
-                if st.session_state.provider in provider_names else 0
-            
-            selected_provider = st.selectbox(
-                "Select Provider:",
-                options=provider_names,
-                index=current_provider_index,
-                label_visibility="collapsed"
-            )
-            st.session_state.provider = selected_provider
-            
-            provider_config = PROVIDERS[selected_provider]
-            
-            # Divider
             st.divider()
             
-            # API Key
-            st.subheader("🔑 API Key")
-            self._render_api_key_input(provider_config)
+            # Chat History section
+            st.subheader("Chat History")
             
-            # Divider
-            st.divider()
-            
-            # Model Selection
-            st.subheader("🤖 Model")
-            self._render_model_selector(provider_config)
-            
-            # Divider
-            st.divider()
-            
-            # Streaming toggle
-            st.subheader("⚡ Options")
-            st.session_state.use_streaming = st.toggle(
-                "Enable Streaming",
-                value=st.session_state.use_streaming,
-                help="Stream responses token by token"
-            )
-            
-            # Divider
-            st.divider()
-            
-            # System Prompt
-            st.subheader("📝 System Prompt")
-            system_prompt = st.text_area(
-                "System Prompt:",
-                value=st.session_state.system_prompt,
-                height=120,
-                help="Define the AI's behavior and personality",
-                label_visibility="collapsed"
-            )
-            if system_prompt:
-                st.session_state.system_prompt = system_prompt
-            
-            # Divider
-            st.divider()
-            
-            # Clear chat button
-            if st.button("🗑️ Clear Chat", use_container_width=True):
-                st.session_state.messages = []
+            # New Chat button
+            if st.button("+ New Chat", use_container_width=True, type="primary"):
+                chatbot.new_chat()
                 st.rerun()
             
-            # Display current config
-            st.divider()
-            st.caption(f"**Current:** {selected_provider} / {st.session_state.model}")
+            st.markdown("")  # Small spacing
+            
+            # List of chat sessions
+            sessions = chatbot.get_sessions()
+            
+            if not sessions:
+                st.caption("No chat history yet")
+            else:
+                for session in sessions:
+                    col1, col2 = st.columns([5, 1])
+                    
+                    with col1:
+                        # Session button
+                        is_active = session.id == chatbot.current_session_id
+                        button_type = "primary" if is_active else "secondary"
+                        
+                        if st.button(
+                            session.title,
+                            key=f"session_{session.id}",
+                            use_container_width=True,
+                            type=button_type
+                        ):
+                            chatbot.load_session(session.id)
+                            st.rerun()
+                    
+                    with col2:
+                        # Delete button
+                        if st.button("×", key=f"del_{session.id}", help="Delete"):
+                            from history import delete_session
+                            delete_session(session.id)
+                            if session.id == chatbot.current_session_id:
+                                st.session_state.current_session_id = None
+                                st.session_state.messages = []
+                            st.rerun()

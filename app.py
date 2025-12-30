@@ -10,8 +10,8 @@ from chatbot import ChatbotManager
 
 # Page configuration
 st.set_page_config(
-    page_title="AI Chatbot | Multi-Provider",
-    page_icon="🤖",
+    page_title="MyAPI Chat",
+    page_icon="💬",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -84,8 +84,8 @@ def render_header():
     col1, col2 = st.columns([3, 1])
     
     with col1:
-        st.title("🤖 AI Chatbot")
-        st.caption(f"Powered by **{provider}** via LangGraph")
+        st.title("💬 MyAPI Chat")
+        st.caption(f"Using **{provider}** • {model}")
     
     with col2:
         # Status indicator
@@ -151,8 +151,8 @@ def main():
     config = Configuration()
     chatbot = ChatbotManager()
     
-    # Render sidebar configuration
-    config.render_sidebar()
+    # Render sidebar with chatbot for history management
+    config.render_sidebar(chatbot)
     
     # Render header
     render_header()

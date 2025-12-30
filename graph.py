@@ -1,6 +1,6 @@
 """
 LangGraph-based chatbot graph implementation.
-Uses a modern state machine approach for conversation management.
+Uses SqliteSaver for persistent state checkpointing.
 """
 
 from typing import Annotated, Literal
@@ -13,6 +13,8 @@ from langchain_anthropic import ChatAnthropic
 from langchain_groq import ChatGroq
 from langgraph.graph import StateGraph, START, END
 from langgraph.graph.message import add_messages
+
+from history import get_checkpointer
 
 
 class ChatState(TypedDict):
@@ -118,13 +120,12 @@ def handle_error(state: ChatState) -> ChatState:
     error_message = state.get("error", "An unknown error occurred")
     return {
         **state,
-        "messages": [AIMessage(content=f"❌ Error: {error_message}")],
+        "messages": [AIMessage(content=f"Error: {error_message}")],
     }
 
 
-def build_chat_graph() -> StateGraph:
-    """Build and compile the chat graph."""
-    # Create the graph
+def build_chat_graph(checkpointer=None):
+    """Build and compile the chat graph with optional checkpointer."""
     graph_builder = StateGraph(ChatState)
     
     # Add nodes
@@ -145,12 +146,30 @@ def build_chat_graph() -> StateGraph:
     graph_builder.add_edge("generate", END)
     graph_builder.add_edge("error", END)
     
-    # Compile and return
-    return graph_builder.compile()
+    # Compile with checkpointer for persistence
+    return graph_builder.compile(checkpointer=checkpointer)
 
 
-# Create a singleton graph instance
-chat_graph = build_chat_graph()
+# Create graph with SQLite checkpointer for persistence
+checkpointer = get_checkpointer()
+chat_graph = build_chat_graph(checkpointer=checkpointer)
+
+
+def get_thread_config(session_id: str) -> dict:
+    """Get the config dict for a specific thread/session."""
+    return {"configurable": {"thread_id": session_id}}
+
+
+def get_session_messages(session_id: str) -> list[BaseMessage]:
+    """Get all messages for a session from the checkpoint."""
+    config = get_thread_config(session_id)
+    try:
+        state = chat_graph.get_state(config)
+        if state and state.values:
+            return state.values.get("messages", [])
+    except Exception:
+        pass
+    return []
 
 
 def get_chat_response(
@@ -158,10 +177,11 @@ def get_chat_response(
     provider: str,
     model: str,
     api_key: str,
-    system_prompt: str = ""
+    system_prompt: str = "",
+    session_id: str = ""
 ) -> tuple[str | None, str | None]:
     """
-    Get a response from the chat graph.
+    Get a response from the chat graph with persistence.
     
     Returns:
         tuple: (response_content, error_message)
@@ -175,7 +195,8 @@ def get_chat_response(
         "error": None
     }
     
-    result = chat_graph.invoke(initial_state)
+    config = get_thread_config(session_id) if session_id else None
+    result = chat_graph.invoke(initial_state, config=config)
     
     if result.get("error"):
         return None, result["error"]
@@ -193,20 +214,21 @@ def stream_chat_response(
     provider: str,
     model: str,
     api_key: str,
-    system_prompt: str = ""
+    system_prompt: str = "",
+    session_id: str = ""
 ):
     """
     Stream a response from the LLM.
+    Note: Streaming doesn't use the graph directly for real-time output.
     
     Yields:
         str: Chunks of the response text
     """
     if not api_key:
-        yield f"❌ Please enter your {provider} API key in the sidebar!"
+        yield f"Please enter your {provider} API key in the sidebar!"
         return
     
     try:
-        # Create state for LLM creation
         state: ChatState = {
             "messages": messages,
             "provider": provider,
@@ -230,4 +252,4 @@ def stream_chat_response(
                 yield chunk.content
                 
     except Exception as e:
-        yield f"❌ Error: {str(e)}"
+        yield f"Error: {str(e)}"
