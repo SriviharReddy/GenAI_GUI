@@ -1,0 +1,40 @@
+[project]
+name = "genai-gui"
+version = "0.2.0"
+description = "Modern multi-provider AI chatbot with LangGraph integration"
+requires-python = ">=3.12"
+dependencies = [
+    # Core LangChain packages
+    "langchain>=0.3.0",
+    "langchain-core>=0.3.0",
+    "langchain-community>=0.3.0",
+    
+    # LangGraph for state management
+    "langgraph>=0.2.0",
+    
+    # Provider integrations
+    "langchain-google-genai>=2.0.0",
+    "langchain-openai>=0.2.0",
+    "langchain-anthropic>=0.3.0",
+    "langchain-groq>=0.2.0",
+    
+    # Web UI
+    "streamlit>=1.40.0",
+    
+    # Utilities
+    "python-dotenv>=1.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+    "ruff>=0.8.0",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "W"]
+ignore = ["E501"]

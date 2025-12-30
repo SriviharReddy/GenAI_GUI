@@ -1,7 +1,19 @@
-streamlit
-langchain
-langchain-google-genai
-langchain-openai
-langchain-anthropic
-langchain-groq
-python-dotenv
+# Core LangChain
+langchain>=0.3.0
+langchain-core>=0.3.0
+langchain-community>=0.3.0
+
+# LangGraph
+langgraph>=0.2.0
+
+# Provider integrations
+langchain-google-genai>=2.0.0
+langchain-openai>=0.2.0
+langchain-anthropic>=0.3.0
+langchain-groq>=0.2.0
+
+# Web UI
+streamlit>=1.40.0
+
+# Utilities
+python-dotenv>=1.0.0
