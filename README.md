@@ -12,6 +12,10 @@ This app lets you use any of them through a single interface. Paste your key, pi
 
 Built with LangGraph for proper conversation management—easy to extend with RAG, tools, or multi-agent flows later.
 
+## Screenshots
+<img width="2559" height="1427" alt="Screenshot 2025-12-30 190635" src="https://github.com/user-attachments/assets/82721af5-d70d-402e-9714-4bc09922a53c" />
+
+
 ## Quick start
 
 **Requirements:** Python 3.12+
