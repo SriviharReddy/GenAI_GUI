@@ -54,5 +54,9 @@ htmlcov/
 *.log
 *.tmp
 
-# Chat history database
+# Chat history database (contains sensitive data)
 chat_history.db
+chat_history.db-wal
+chat_history.db-shm
+*.db-wal
+*.db-shm
