@@ -1,10 +1,11 @@
 """
 LangGraph-based chatbot graph implementation.
 Uses SqliteSaver for persistent state checkpointing.
+SECURITY: Only messages are persisted - API keys are never stored.
 """
 
 import sqlite3
-from typing import Annotated, Literal
+from typing import Annotated
 from typing_extensions import TypedDict
 
 from langchain_core.messages import BaseMessage, SystemMessage, HumanMessage, AIMessage
@@ -24,12 +25,12 @@ checkpointer = SqliteSaver(conn=conn)
 
 
 class ChatState(TypedDict):
-    """State schema for the chatbot graph."""
+    """
+    State schema for the chatbot graph.
+    SECURITY: Only 'messages' is persisted by the checkpointer.
+    Sensitive fields (api_key) are passed at runtime and NOT stored.
+    """
     messages: Annotated[list[BaseMessage], add_messages]
-    provider: str
-    model: str
-    api_key: str
-    system_prompt: str
 
 
 def create_llm(provider: str, model: str, api_key: str):
@@ -70,36 +71,15 @@ def create_llm(provider: str, model: str, api_key: str):
             raise ValueError(f"Unknown provider: {provider}")
 
 
-def chat_node(state: ChatState) -> dict:
-    """Process a chat message and generate a response."""
-    provider = state["provider"]
-    model = state["model"]
-    api_key = state["api_key"]
-    system_prompt = state.get("system_prompt", "")
-    
-    if not api_key:
-        return {"messages": [AIMessage(content=f"Please enter your {provider} API key in the sidebar!")]}
-    
-    try:
-        llm = create_llm(provider, model, api_key)
-        
-        # Build messages with system prompt
-        messages = []
-        if system_prompt:
-            messages.append(SystemMessage(content=system_prompt))
-        messages.extend(state["messages"])
-        
-        # Generate response
-        response = llm.invoke(messages)
-        return {"messages": [response]}
-        
-    except Exception as e:
-        return {"messages": [AIMessage(content=f"Error: {str(e)}")]}
+# Simple graph that just persists messages
+def passthrough(state: ChatState) -> dict:
+    """Passthrough node - actual LLM call happens outside graph for security."""
+    return {}
 
 
-# Build the graph
+# Build the graph - just for message persistence
 graph = StateGraph(ChatState)
-graph.add_node("chat", chat_node)
+graph.add_node("chat", passthrough)
 graph.add_edge(START, "chat")
 graph.add_edge("chat", END)
 
@@ -123,17 +103,10 @@ def get_session_messages(thread_id: str) -> list[BaseMessage]:
     return []
 
 
-def retrieve_all_threads() -> list[str]:
-    """Retrieve all thread IDs from the checkpointer."""
-    all_threads = set()
-    try:
-        for checkpoint in checkpointer.list(None):
-            thread_id = checkpoint.config.get('configurable', {}).get('thread_id')
-            if thread_id:
-                all_threads.add(thread_id)
-    except Exception:
-        pass
-    return list(all_threads)
+def save_messages(thread_id: str, messages: list[BaseMessage]) -> None:
+    """Save messages to the checkpoint."""
+    config = get_thread_config(thread_id)
+    chatbot.invoke({"messages": messages}, config=config)
 
 
 def invoke_chat(
@@ -145,30 +118,43 @@ def invoke_chat(
     system_prompt: str = ""
 ) -> str:
     """
-    Send a message and get a response, with persistence.
+    Send a message and get a response.
+    API key is used at runtime but NEVER persisted.
     
     Returns:
         The AI response content
     """
-    config = get_thread_config(thread_id)
+    if not api_key:
+        return f"Please enter your {provider} API key in the sidebar!"
     
-    result = chatbot.invoke(
-        {
-            "messages": [HumanMessage(content=user_message)],
-            "provider": provider,
-            "model": model,
-            "api_key": api_key,
-            "system_prompt": system_prompt,
-        },
-        config=config
-    )
-    
-    # Get the last AI message
-    for msg in reversed(result["messages"]):
-        if isinstance(msg, AIMessage):
-            return msg.content
-    
-    return "No response generated"
+    try:
+        # Get existing messages from checkpoint
+        existing_messages = get_session_messages(thread_id)
+        
+        # Create LLM with runtime credentials (not persisted)
+        llm = create_llm(provider, model, api_key)
+        
+        # Build messages with system prompt for LLM call
+        llm_messages = []
+        if system_prompt:
+            llm_messages.append(SystemMessage(content=system_prompt))
+        llm_messages.extend(existing_messages)
+        llm_messages.append(HumanMessage(content=user_message))
+        
+        # Generate response
+        response = llm.invoke(llm_messages)
+        
+        # Save both user message and AI response to checkpoint
+        # Only messages are persisted, NOT the api_key
+        save_messages(thread_id, [
+            HumanMessage(content=user_message),
+            response
+        ])
+        
+        return response.content
+        
+    except Exception as e:
+        return f"Error: {str(e)}"
 
 
 def stream_chat(
@@ -180,31 +166,42 @@ def stream_chat(
     system_prompt: str = ""
 ):
     """
-    Stream a chat response with persistence.
+    Stream a chat response.
+    API key is used at runtime but NEVER persisted.
     
     Yields:
         Chunks of the response text
     """
-    config = get_thread_config(thread_id)
-    
-    # First, we need to add the user message to state and generate response
-    # For streaming, we invoke the graph then stream from the final message
+    if not api_key:
+        yield f"Please enter your {provider} API key in the sidebar!"
+        return
     
     try:
-        # Stream using LangGraph's stream mode
-        for chunk, metadata in chatbot.stream(
-            {
-                "messages": [HumanMessage(content=user_message)],
-                "provider": provider,
-                "model": model,
-                "api_key": api_key,
-                "system_prompt": system_prompt,
-            },
-            config=config,
-            stream_mode="messages"
-        ):
-            if hasattr(chunk, 'content') and chunk.content:
+        # Get existing messages from checkpoint
+        existing_messages = get_session_messages(thread_id)
+        
+        # Create LLM with runtime credentials (not persisted)
+        llm = create_llm(provider, model, api_key)
+        
+        # Build messages with system prompt for LLM call
+        llm_messages = []
+        if system_prompt:
+            llm_messages.append(SystemMessage(content=system_prompt))
+        llm_messages.extend(existing_messages)
+        llm_messages.append(HumanMessage(content=user_message))
+        
+        # Stream response
+        full_response = ""
+        for chunk in llm.stream(llm_messages):
+            if chunk.content:
+                full_response += chunk.content
                 yield chunk.content
+        
+        # Save messages to checkpoint after streaming completes
+        save_messages(thread_id, [
+            HumanMessage(content=user_message),
+            AIMessage(content=full_response)
+        ])
                 
     except Exception as e:
         yield f"Error: {str(e)}"
