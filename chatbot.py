@@ -76,11 +76,15 @@ class ChatbotManager:
         """Get the current system prompt."""
         return st.session_state.get("system_prompt", "")
     
-    def new_chat(self) -> ChatSession:
-        """Create a new chat session."""
+    def new_chat(self) -> None:
+        """Start a new chat (clears current view, session created on first message)."""
+        st.session_state.current_session_id = None
+        st.session_state.message_history = []
+    
+    def _create_session(self) -> ChatSession:
+        """Actually create a session in the database."""
         session = create_session(provider=self.provider, model=self.model)
         st.session_state.current_session_id = session.id
-        st.session_state.message_history = []
         return session
     
     def load_session(self, session_id: str) -> None:
@@ -117,7 +121,7 @@ class ChatbotManager:
     def ensure_session(self) -> None:
         """Ensure there's an active session, create one if needed."""
         if not self.current_session_id:
-            self.new_chat()
+            self._create_session()
     
     def display_chat_history(self) -> None:
         """Display all messages in the chat history."""
