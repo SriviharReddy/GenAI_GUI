@@ -112,9 +112,6 @@ def handle_user_input(chatbot: ChatbotManager):
         with st.chat_message("human"):
             st.markdown(user_input)
         
-        # Add to history
-        chatbot.add_message("human", user_input)
-        
         # Generate and display AI response
         with st.chat_message("ai"):
             if st.session_state.get("use_streaming", True):
@@ -122,24 +119,22 @@ def handle_user_input(chatbot: ChatbotManager):
                 response_placeholder = st.empty()
                 full_response = ""
                 
-                for chunk in chatbot.get_streaming_response(user_input):
+                for chunk in chatbot.stream_message(user_input):
                     full_response += chunk
                     response_placeholder.markdown(full_response + "▌")
                 
                 response_placeholder.markdown(full_response)
                 
-                if full_response and not full_response.startswith("❌"):
-                    chatbot.add_message("ai", full_response)
+                # Add AI response to history for display
+                st.session_state.message_history.append({
+                    'role': 'assistant',
+                    'content': full_response
+                })
             else:
                 # Non-streaming response
                 with st.spinner("Thinking..."):
-                    response, error = chatbot.get_response(user_input)
-                
-                if error:
-                    st.error(f"❌ {error}")
-                elif response:
-                    st.markdown(response)
-                    chatbot.add_message("ai", response)
+                    response = chatbot.send_message(user_input)
+                st.markdown(response)
 
 
 def main():

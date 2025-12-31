@@ -1,6 +1,6 @@
 """
-Chat history management with SQLite persistence.
-Uses LangGraph's SqliteSaver for state checkpointing.
+Chat session management with SQLite persistence.
+Sessions (titles, metadata) stored in our table, messages stored via LangGraph checkpointer.
 """
 
 import sqlite3
@@ -9,10 +9,8 @@ from datetime import datetime
 from pathlib import Path
 from dataclasses import dataclass
 
-from langgraph.checkpoint.sqlite import SqliteSaver
 
-
-# Database path
+# Database path (shared with graph.py checkpointer)
 DB_PATH = Path("chat_history.db")
 
 
@@ -35,11 +33,11 @@ def get_db_connection() -> sqlite3.Connection:
 
 
 def init_db() -> None:
-    """Initialize the database schema."""
+    """Initialize the database schema for sessions."""
     conn = get_db_connection()
     cursor = conn.cursor()
     
-    # Create sessions table
+    # Create sessions table (messages are stored by LangGraph checkpointer)
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS chat_sessions (
             id TEXT PRIMARY KEY,
@@ -55,17 +53,11 @@ def init_db() -> None:
     conn.close()
 
 
-def get_checkpointer() -> SqliteSaver:
-    """Get a SqliteSaver instance for LangGraph state persistence."""
-    conn = sqlite3.connect(DB_PATH, check_same_thread=False)
-    return SqliteSaver(conn)
-
-
 def create_session(provider: str = "", model: str = "") -> ChatSession:
     """Create a new chat session."""
     session_id = str(uuid.uuid4())
     now = datetime.now()
-    title = f"New Chat"
+    title = "New Chat"
     
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -161,15 +153,6 @@ def delete_session(session_id: str) -> None:
     cursor.execute("DELETE FROM chat_sessions WHERE id = ?", (session_id,))
     conn.commit()
     conn.close()
-
-
-def generate_title_from_message(message: str) -> str:
-    """Generate a short title from the first message."""
-    # Take first 40 chars, clean up
-    title = message.strip()[:40]
-    if len(message) > 40:
-        title += "..."
-    return title
 
 
 # Initialize database on module import
